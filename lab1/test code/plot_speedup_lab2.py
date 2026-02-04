@@ -4,7 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-df = pd.read_csv('benchmark_results_lab2.csv')
+df = pd.read_csv('.././csv/result_openmp_matrix.csv')
 
 avg_times = df.groupby(['impl', 'threads'])['elapsed_ms'].mean().reset_index()
 
