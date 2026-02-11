@@ -37,8 +37,8 @@ void compute_threads(double *array, int array_size, int num_thread){
 }
 
 // workload - impl - threads - size - run_i - elapsed_ms
-void compute_sequential_function(int sum_run, int max_threads, int array_size, double *array){
-    string file_path = "./csv/result_sequential_sin.csv";
+void compute_sequential_function(int sum_run, int max_threads, int array_size, double *array, bool is_battery){
+    string file_path = is_battery ? "./csv/result_sequential_sin_battery.csv" : "./csv/result_sequential_sin.csv";
     ofstream file(file_path);
 
     for(int run_i=1; run_i <= sum_run; run_i++){
@@ -56,8 +56,8 @@ void compute_sequential_function(int sum_run, int max_threads, int array_size, d
     file.close();
 }
 
-void compute_openmp_function(int sum_run, int max_threads, int array_size, double *array){
-    string file_path = "./csv/result_openmp_sin.csv";
+void compute_openmp_function(int sum_run, int max_threads, int array_size, double *array, bool is_battery){
+    string file_path = is_battery ? "./csv/result_openmp_sin_battery.csv" : "./csv/result_openmp_sin.csv";
     ofstream file(file_path);
 
     for(int run_i=1; run_i <= sum_run; run_i++){
@@ -86,8 +86,8 @@ void compute_openmp_function(int sum_run, int max_threads, int array_size, doubl
     file.close();
 }
 
-void compute_threads_function(int sum_run, int max_threads, int array_size, double *array){
-    string file_path = "./csv/result_threads_sin.csv";
+void compute_threads_function(int sum_run, int max_threads, int array_size, double *array, bool is_battery){
+    string file_path = is_battery ? "./csv/result_threads_sin_battery.csv" : "./csv/result_threads_sin.csv";
     ofstream file(file_path);
 
     for(int run_i=1; run_i <= sum_run; run_i++){
@@ -122,6 +122,17 @@ int main(){
     cin >> num_thread;
     cout << "Num thread: " << num_thread << endl;
     
+    char battery_input;
+    bool is_battery = false;
+    cout << "Цэнэглэж байгаа юу? (y/n): ";
+    cin >> battery_input;
+    if(battery_input == 'n' || battery_input == 'N'){
+        is_battery = true;
+        cout << "Battery mode: Өгөгдлийг *_battery.csv файлд хадгална." << endl;
+    } else {
+        cout << "Plugged-in mode: Өгөгдлийг стандарт .csv файлд хадгална." << endl;
+    }
+    
     for (int i=0; i<array_size; i++){
         array[i]=1.0;
     }
@@ -131,14 +142,17 @@ int main(){
     cin >> choise_method;
     
     if(choise_method == 1){
-        compute_sequential_function(10, num_thread, array_size, array);
-        cout << "Sequential compute complete. Saved csv/result_sequential_sin.csv" << endl;
+        compute_sequential_function(10, num_thread, array_size, array, is_battery);
+        string result_file = is_battery ? "csv/result_sequential_sin_battery.csv" : "csv/result_sequential_sin.csv";
+        cout << "Sequential compute complete. Saved " << result_file << endl;
     } else if(choise_method == 2){
-        compute_openmp_function(10, num_thread, array_size, array);
-        cout << "OpenMP compute complete. Saved csv/result_openmp_sin.csv" << endl;
+        compute_openmp_function(10, num_thread, array_size, array, is_battery);
+        string result_file = is_battery ? "csv/result_openmp_sin_battery.csv" : "csv/result_openmp_sin.csv";
+        cout << "OpenMP compute complete. Saved " << result_file << endl;
     } else if(choise_method == 3){
-        compute_threads_function(10, num_thread, array_size, array);
-        cout << "std::threads compute complete. Saved csv/result_threads_sin.csv" << endl;
+        compute_threads_function(10, num_thread, array_size, array, is_battery);
+        string result_file = is_battery ? "csv/result_threads_sin_battery.csv" : "csv/result_threads_sin.csv";
+        cout << "std::threads compute complete. Saved " << result_file << endl;
     }
     
     delete[] array;

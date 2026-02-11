@@ -6,7 +6,6 @@
 using namespace std;
 using namespace std::chrono;
 
-// B матрицыг transpose хийх (cache locality сайжруулах)
 void transpose(double *b, double *b_t, int n){
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
@@ -15,47 +14,43 @@ void transpose(double *b, double *b_t, int n){
     }
 }
 
-// Sequential матрицын үржвэр (B transpose-тэй)
 void compute_sequential(double *a, double *b_t, double *c, int n){
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             double sum = 0.0;
             for(int k = 0; k < n; k++){
-                sum += a[i*n + k] * b_t[j*n + k];  // b_t[j][k] = b[k][j]
+                sum += a[i*n + k] * b_t[j*n + k]; 
             }
             c[i*n + j] = sum;
         }
     }
 }
 
-// OpenMP матрицын үржвэр (B transpose-тэй)
 void compute_openmp(double *a, double *b_t, double *c, int n, int num_threads){
     #pragma omp parallel for num_threads(num_threads) schedule(dynamic)
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             double sum = 0.0;
             for(int k = 0; k < n; k++){
-                sum += a[i*n + k] * b_t[j*n + k];  // b_t[j][k] = b[k][j]
+                sum += a[i*n + k] * b_t[j*n + k]; 
             }
             c[i*n + j] = sum;
         }
     }
 }
 
-// Thread функц - нэг хэсэг мөрүүдийг тооцоолох (B transpose-тэй)
 void compute_thread_rows(double *a, double *b_t, double *c, int n, int start_row, int end_row){
     for(int i = start_row; i < end_row; i++){
         for(int j = 0; j < n; j++){
             double sum = 0.0;
             for(int k = 0; k < n; k++){
-                sum += a[i*n + k] * b_t[j*n + k];  // b_t[j][k] = b[k][j]
+                sum += a[i*n + k] * b_t[j*n + k];
             }
             c[i*n + j] = sum;
         }
     }
 }
 
-// Multithreading матрицын үржвэр (B transpose-тэй)
 void compute_threads(double *a, double *b_t, double *c, int n, int num_threads){
     vector<thread> threads;
     int rows_per_thread = n / num_threads;
@@ -71,13 +66,11 @@ void compute_threads(double *a, double *b_t, double *c, int n, int num_threads){
     }
 }
 
-// Sequential benchmark функц
-void compute_sequential_function(int sum_run, int max_threads, int n, double *a, double *b, double *c){
-    string file_path = "./csv/result_sequential_matrix.csv";
+void compute_sequential_function(int sum_run, int max_threads, int n, double *a, double *b, double *c, bool is_battery){
+    string file_path = is_battery ? "./csv/result_sequential_matrix_battery.csv" : "./csv/result_sequential_matrix.csv";
     ofstream file(file_path);
     file << "workload,implementation,threads,matrix_size,run,elapsed_ms" << endl;
 
-    // B матрицыг transpose хийх
     double *b_t = new double[n * n];
     transpose(b, b_t, n);
 
@@ -93,25 +86,21 @@ void compute_sequential_function(int sum_run, int max_threads, int n, double *a,
     file.close();
 }
 
-// OpenMP benchmark функц
-void compute_openmp_function(int sum_run, int max_threads, int n, double *a, double *b, double *c){
-    string file_path = "./csv/result_openmp_matrix.csv";
+void compute_openmp_function(int sum_run, int max_threads, int n, double *a, double *b, double *c, bool is_battery){
+    string file_path = is_battery ? "./csv/result_openmp_matrix_battery.csv" : "./csv/result_openmp_matrix.csv";
     ofstream file(file_path);
     file << "workload,implementation,threads,matrix_size,run,elapsed_ms" << endl;
 
-    // B матрицыг transpose хийх
     double *b_t = new double[n * n];
     transpose(b, b_t, n);
 
     for(int run_i = 1; run_i <= sum_run; run_i++){
-        // Sequential (1 thread)
         auto t1 = steady_clock::now();
         compute_openmp(a, b_t, c, n, 1);
         auto t2 = steady_clock::now();
         auto duration = duration_cast<milliseconds>(t2 - t1);
         file << "matrix_multiply,openmp,1," << n << "," << run_i << "," << duration.count() << endl;
 
-        // Parallel (2, 4, 6, ... threads)
         for(int thread = 2; thread <= max_threads; thread += 2){
             auto t3 = steady_clock::now();
             compute_openmp(a, b_t, c, n, thread);
@@ -123,27 +112,23 @@ void compute_openmp_function(int sum_run, int max_threads, int n, double *a, dou
     
     delete[] b_t;
     file.close();
-}
+}   
 
-// Multithreading benchmark функц
-void compute_threads_function(int sum_run, int max_threads, int n, double *a, double *b, double *c){
-    string file_path = "./csv/result_threads_matrix.csv";
+void compute_threads_function(int sum_run, int max_threads, int n, double *a, double *b, double *c, bool is_battery){
+    string file_path = is_battery ? "./csv/result_threads_matrix_battery.csv" : "./csv/result_threads_matrix.csv";
     ofstream file(file_path);
     file << "workload,implementation,threads,matrix_size,run,elapsed_ms" << endl;
 
-    // B матрицыг transpose хийх
     double *b_t = new double[n * n];
     transpose(b, b_t, n);
 
     for(int run_i = 1; run_i <= sum_run; run_i++){
-        // Sequential (1 thread)
         auto t1 = steady_clock::now();
         compute_threads(a, b_t, c, n, 1);
         auto t2 = steady_clock::now();
         auto duration = duration_cast<milliseconds>(t2 - t1);
         file << "matrix_multiply,threads,1," << n << "," << run_i << "," << duration.count() << endl;
 
-        // Parallel (2, 4, 6, ... threads)
         for(int thread = 2; thread <= max_threads; thread += 2){
             auto t3 = steady_clock::now();
             compute_threads(a, b_t, c, n, thread);
@@ -162,12 +147,10 @@ int main(){
     cout << "Enter matrix size (n for n×n): ";
     cin >> n;
     
-    // Матриц үүсгэх (1D array-аар)
     double *a_matrix = new double[n * n];
     double *b_matrix = new double[n * n];
     double *c_matrix = new double[n * n];
     
-    // Матрицыг 1.0-аар дүүргэх
     for(int i = 0; i < n * n; i++){
         a_matrix[i] = 1.0;
         b_matrix[i] = 1.0;
@@ -179,6 +162,17 @@ int main(){
     cin >> num_thread;
     cout << "Max threads: " << num_thread << endl;
     
+    char battery_input;
+    bool is_battery = false;
+    cout << "Цэнэглэж байгаа юу? (y/n): ";
+    cin >> battery_input;
+    if(battery_input == 'n' || battery_input == 'N'){
+        is_battery = true;
+        cout << "Battery mode: Өгөгдлийг *_battery.csv файлд хадгална." << endl;
+    } else {
+        cout << "Plugged-in mode: Өгөгдлийг стандарт .csv файлд хадгална." << endl;
+    }
+    
     int choice_method;
     cout << "Choose method" << endl 
          << "1. Sequential" << endl 
@@ -187,14 +181,17 @@ int main(){
     cin >> choice_method;
     
     if(choice_method == 1){
-        compute_sequential_function(10, num_thread, n, a_matrix, b_matrix, c_matrix);
-        cout << "Sequential compute complete. Saved csv/result_sequential_matrix.csv" << endl;
+        compute_sequential_function(10, num_thread, n, a_matrix, b_matrix, c_matrix, is_battery);
+        string result_file = is_battery ? "csv/result_sequential_matrix_battery.csv" : "csv/result_sequential_matrix.csv";
+        cout << "Sequential compute complete. Saved " << result_file << endl;
     } else if(choice_method == 2){
-        compute_openmp_function(10, num_thread, n, a_matrix, b_matrix, c_matrix);
-        cout << "OpenMP compute complete. Saved csv/result_openmp_matrix.csv" << endl;
+        compute_openmp_function(10, num_thread, n, a_matrix, b_matrix, c_matrix, is_battery);
+        string result_file = is_battery ? "csv/result_openmp_matrix_battery.csv" : "csv/result_openmp_matrix.csv";
+        cout << "OpenMP compute complete. Saved " << result_file << endl;
     } else if(choice_method == 3){
-        compute_threads_function(10, num_thread, n, a_matrix, b_matrix, c_matrix);
-        cout << "std::threads compute complete. Saved csv/result_threads_matrix.csv" << endl;
+        compute_threads_function(10, num_thread, n, a_matrix, b_matrix, c_matrix, is_battery);
+        string result_file = is_battery ? "csv/result_threads_matrix_battery.csv" : "csv/result_threads_matrix.csv";
+        cout << "std::threads compute complete. Saved " << result_file << endl;
     }
     
     delete[] a_matrix;
