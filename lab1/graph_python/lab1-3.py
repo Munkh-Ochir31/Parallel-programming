@@ -2,26 +2,14 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-TASK_TYPE = 'sum'  
 
-if TASK_TYPE == 'sum':
-    sequential_path = './csv/result_sequential.csv'
-    threads_path    = './csv/result_threads.csv'
-    openmp_path     = './csv/result_openmp.csv'
-    
-    sequential_battery_path = './csv/result_sequential_battery.csv'
-    threads_battery_path    = './csv/result_threads_battery.csv'
-    openmp_battery_path     = './csv/result_openmp_battery.csv'
-elif TASK_TYPE == 'sin':
-    sequential_path = './csv/result_sequential_sin.csv'
-    threads_path    = './csv/result_threads_sin.csv'
-    openmp_path     = './csv/result_openmp_sin.csv'
-    
-    sequential_battery_path = './csv/result_sequential_sin_battery.csv'
-    threads_battery_path    = './csv/result_threads_sin_battery.csv'
-    openmp_battery_path     = './csv/result_openmp_sin_battery.csv'
-else:
-    raise ValueError(f"Unknown TASK_TYPE: {TASK_TYPE}. Use 'sum' or 'sin'.")
+sequential_path = './csv/result_sequential_matrix.csv'
+threads_path    = './csv/result_threads_matrix.csv'
+openmp_path     = './csv/result_openmp_matrix.csv'
+
+sequential_battery_path = './csv/result_sequential_matrix_battery.csv'
+threads_battery_path    = './csv/result_threads_matrix_battery.csv'
+openmp_battery_path     = './csv/result_openmp_matrix_battery.csv'
 
 
 def mean_time_by_threads(df, thread_col=2, time_col=5):
@@ -86,10 +74,10 @@ ax1.plot(omp_plug['threads'], omp_plug['speedup'], marker='o', linestyle='-',
          color=c_omp_ac, linewidth=lw, markersize=ms, label='OpenMP (Plugged-in)')
 ax1.plot(all_threads, ideal_speed, linestyle='--', color=c_ideal, linewidth=lw, label='Ideal (S=T)')
 
-ax1.set_title(f'{TASK_TYPE}: Speed (Battery vs Plugged-in)', fontsize=14)
+ax1.set_title('Matrix Multiplication: Speed (Battery vs Plugged-in)', fontsize=14)
 ax1.set_ylabel('Speed (T1 / Tn)', fontsize=12)
-ax1.set_xlim(0.5, 15.5)
-ax1.set_xticks(np.arange(1, 16, 1))
+ax1.set_xlim(0.5, all_threads[-1] + 0.5)
+ax1.set_xticks(all_threads)
 ax1.grid(True, linestyle=':', linewidth=1, alpha=0.6)
 ax1.set_axisbelow(True)
 
@@ -108,11 +96,11 @@ ax2.plot(omp_plug['threads'], omp_plug['eff'], marker='o', linestyle='-',
          color=c_omp_ac, linewidth=lw, markersize=ms, label='OpenMP (Plugged-in)')
 ax2.plot(all_threads, ideal_eff, linestyle='--', color=c_ideal, linewidth=lw, label='Ideal (E=1)')
 
-ax2.set_title(f'{TASK_TYPE}: Efficiency (Battery vs Plugged-in)', fontsize=14)
-ax2.set_xlabel('Threads (1–15)', fontsize=12)
+ax2.set_title('Matrix Multiplication: Efficiency (Battery vs Plugged-in)', fontsize=14)
+ax2.set_xlabel(f'Threads (1–{int(all_threads[-1])})', fontsize=12)
 ax2.set_ylabel('Efficiency', fontsize=12)
 ax2.set_ylim(0, 1.02)
-ax2.set_xticks(np.arange(1, 16, 1))
+ax2.set_xticks(all_threads)
 ax2.grid(True, linestyle=':', linewidth=1, alpha=0.6)
 ax2.set_axisbelow(True)
 
@@ -130,7 +118,7 @@ cpu_info = (
     "CPU: Intel(R) Core(TM) i7-13700H\n"
     "Cores / Threads: 14 / 20\n"
     "L3 Cache: 24 MiB\n"
-    "Power: Plugged-in"
+    "Matrix Multiplication (with transpose)"
 )
 
 plt.tight_layout(rect=[0.03, 0.22, 0.86, 0.98])

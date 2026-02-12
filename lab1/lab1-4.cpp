@@ -26,6 +26,7 @@ void compute_sequential_no_transpose(double *a, double *b, double *c, int m, int
     }
 }
 
+
 void compute_openmp_no_transpose(double *a, double *b, double *c, int m, int n, int num_threads){
     #pragma omp parallel for num_threads(num_threads) schedule(dynamic)
     for(int i = 0; i < m; i++){
@@ -307,13 +308,13 @@ int main(){
     
     int transpose_choice;
     cout << "\nB матрицийг эргүүлэх үү?" << endl
-         << "1. Эргүүлэхгүй (No transpose - удаан)" << endl
-         << "2. Эргүүлж (With transpose - хурдан)" << endl
-         << "3. Хоёуланг нь (Both - харьцуулах)" << endl;
+         << "1. No transpose " << endl
+         << "2. transpose " << endl
+         << "3. Both " << endl;
     cin >> transpose_choice;
     
     if(transpose_choice == 1 || transpose_choice == 3){
-        cout << "\n===== ЭРГҮҮЛЭХГҮЙ ТООЦООЛОЛ (No Transpose) =====" << endl;
+        cout << "\nNo Transpose" << endl;
         if(choice_method == 1){
             compute_sequential_no_transpose_function(10, num_thread, m, n, a_matrix, b_matrix, c_matrix, is_battery);
             string result_file = is_battery ? "csv/result_sequential_mxn_no_transpose_battery.csv" : "csv/result_sequential_mxn_no_transpose.csv";
@@ -330,7 +331,7 @@ int main(){
     }
     
     if(transpose_choice == 2 || transpose_choice == 3){
-        cout << "\n===== ЭРГҮҮЛЖ ТООЦООЛОЛ (With Transpose) =====" << endl;
+        cout << "\n With Transpose" << endl;
         if(choice_method == 1){
             compute_sequential_with_transpose_function(10, num_thread, m, n, a_matrix, b_matrix, c_matrix, is_battery);
             string result_file = is_battery ? "csv/result_sequential_mxn_with_transpose_battery.csv" : "csv/result_sequential_mxn_with_transpose.csv";
