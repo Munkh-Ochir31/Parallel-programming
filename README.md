@@ -1,7 +1,5 @@
 ### Lab2 push хийх үед:
-git push
+git push lab HEAD:main
+
 #### lab2 to other lab2 branch
-git push -u origin lab2:lab2   
-### Lab1 (origin/main) дээр хийх үед:
-git switch main
-git push origin main
+git push origin lab2:lab2   
